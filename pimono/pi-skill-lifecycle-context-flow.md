@@ -164,12 +164,18 @@ loadSkillFromFile()
 }
 ```
 
-加载时的几个关键规则：
+主要校验项：
+
+- `name`
+  - 是否和父目录同名
+  - 是否只包含小写字母、数字、连字符
+  - 是否超过 64 个字符
+- `description`
+  - 是否存在
+  - 是否超过 1024 个字符
 
 - `description` 必须存在，否则 skill 不加载。
 - `name` 优先来自 frontmatter；没有时用父目录名。
-- `disable-model-invocation: true` 时，不进入模型可见的 skill 索引，但仍可通过 `/skill:name` 手动调用。
-- 同名 skill 冲突时，先加载的胜出，后加载的记录 collision diagnostic。
 
 ## 5. System Prompt 阶段：只放 skill 索引
 
@@ -479,6 +485,32 @@ stream assistant response
 
 所以一轮用户请求可能包含多次 LLM 请求。
 
+### Mermaid 流程图
+
+```mermaid
+sequenceDiagram
+    participant U as "用户"
+    participant S as "AgentSession"
+    participant LLM as "大模型"
+    participant R as "read 工具"
+    participant B as "bash 工具"
+
+    U->>S: 输入普通问题（没有 /skill:name）
+    S->>LLM: 发送 system prompt + 用户问题 + 可用工具
+    Note over LLM: system prompt 中已包含<br/>available_skills 列表
+    LLM-->>S: tool call: read(skill 的 SKILL.md)
+    S->>R: 执行 read
+    R-->>S: 返回 SKILL.md 正文
+    S->>LLM: 回填 skill 正文
+    LLM-->>S: tool call: bash/read/edit/write ...
+    S->>B: 执行具体命令或继续其他工具
+    B-->>S: 返回结果
+    S->>LLM: 回填 tool result
+    LLM-->>S: 输出最终回答
+```
+
+
+
 ## 11. 显式 /skill 分支：第 1 次请求就带全文
 
 如果用户输入的是：
@@ -571,6 +603,11 @@ custom                       -> appendCustomMessageEntry()
 ```
 
 这意味着 skill 全文一旦通过 `read` 或 `/skill` 进入对话，就只是普通历史消息的一部分。
+
+
+
+
+
 
 ## 14. 三种容易混淆的“压缩”
 

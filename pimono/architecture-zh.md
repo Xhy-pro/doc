@@ -2,30 +2,6 @@
 
 这篇文档面向整个 `pi-mono` 仓库，解释各个包的职责、依赖关系、主运行时链路，以及为什么仓库会拆成现在这组模块。
 
-如果你只关心 `pi-coding-agent`，先读 [packages/coding-agent/README.md](../packages/coding-agent/README.md)。如果你想从整个 monorepo 的视角理解设计，这篇文档更合适。
-
-## 一张图先看全局
-
-```mermaid
-graph TD
-    AI["packages/ai<br/>统一 LLM API 与 provider 层"]
-    AGENT["packages/agent<br/>通用 agent runtime"]
-    TUI["packages/tui<br/>终端 UI 基础库"]
-    WEB["packages/web-ui<br/>Web 聊天 UI 组件"]
-    CA["packages/coding-agent<br/>交互式 coding agent CLI"]
-    MOM["packages/mom<br/>Slack bot，复用 coding-agent"]
-    PODS["packages/pods<br/>GPU / vLLM 部署管理 CLI"]
-
-    AI --> AGENT
-    AI --> WEB
-    AGENT --> CA
-    TUI --> CA
-    AI --> CA
-    CA --> MOM
-    AGENT --> MOM
-    AI --> MOM
-    AGENT --> PODS
-```
 
 从仓库根 README 和各包的 `package.json` 看，这个 monorepo 不是单体应用，而是一套围绕 agent 构建的分层工具箱：
 

@@ -431,6 +431,17 @@ Runner 每次发给 LLM 前会做上下文治理，其中一个步骤是 `_micro
 
 这叫“压缩”，还不是最彻底的剔除。
 
+规则是：
+
+```text
+如果 compactable tool result 数量 <= 10：
+    不压缩。
+
+如果 compactable tool result 数量 > 10：
+    保留最近 10 个 compactable tool result 的全文。
+    更旧的结果如果 content 是字符串且长度 >= 500 字符，就替换成一行占位。
+```
+
 ## 第 9 阶段：上下文超预算后被裁掉
 
 如果压缩后上下文还是太长，Runner 会执行 `_snip_history()`。
